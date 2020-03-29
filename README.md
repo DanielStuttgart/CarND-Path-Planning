@@ -46,6 +46,18 @@ for (int i = 0; i < 50 - path_size; ++i) {            // for new path, add PI/10
   pos_y += (dist_inc)*sin(angle + (i + 1) * (pi() / 100));
 }
 ```
+Next step to stay in lane by using s, d - coordinates from loaded map (needed to change path `string map_file_ = "../../../data/highway_map.csv";`: 
+```c++
+// keep in lane example
+double dist_inc = 0.5; 
+for (int i = 0; i < 50; ++i) {
+  double next_s = car_s + dist_inc * (i+1);           // car moves forward by dist_inc
+  double next_d = 6;                                // car starts in middle lane = 1,5 lanes from middle line = 1,5 * 4 m = 6 m              
+  vector<double> xy = getXY(next_s, next_d, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+  next_x_vals.push_back(xy[0]);
+  next_y_vals.push_back(xy[1]);
+}         
+```
 Example List
 * Part 1
   * Subpart 1a
