@@ -2,7 +2,7 @@
 Path-Planning part of Nanodegree "Self-driving car engineer"
 
 ## Getting Started
-For getting in touch with term3-simulator I implemented a constant velocity of 0,5 m / 20 ms = 5 m/s: 
+For getting in touch with term3-simulator I implemented a constant velocity of 0,5 m / 20 ms = 25 m/s: 
 ```c++
 // "getting started" --> move with 50 km/h in heading direction
 double dist_inc = 0.5;        // every frame, add 0.2 m to x; 0.5 m / 20 ms = 25 m/s = 90 km/h = 56 mph
