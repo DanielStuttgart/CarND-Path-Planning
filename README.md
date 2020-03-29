@@ -1,7 +1,16 @@
 # CarND-Path-Planning
 Path-Planning part of Nanodegree "Self-driving car engineer"
 
-## Goals of this project
+## Getting Started
+For getting in touch with term3-simulator I implemented a constant velocity of 0,5 m / 20 ms = 5 m/s: 
+```c++
+// "getting started" --> move with 50 km/h in heading direction
+double dist_inc = 0.5;        // every frame, add 0.2 m to x; 0.5 m / 20 ms = 25 m/s = 90 km/h = 56 mph
+for (int i = 0; i < 50; ++i) {
+    next_x_vals.push_back(car_x + (dist_inc * i) * cos(deg2rad(car_yaw)));
+    next_y_vals.push_back(car_y + (dist_inc * i) * sin(deg2rad(car_yaw)));
+}
+```
 
 Example List
 * Part 1
