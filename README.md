@@ -58,6 +58,61 @@ for (int i = 0; i < 50; ++i) {
   next_y_vals.push_back(xy[1]);
 }         
 ```
+## Car following
+```c++
+// initialization within main()
+double ref_vel = 0;           // start at 0.0 in order to avoid high gradients in acceleration
+
+// car-following within onMessage()
+// car-following part beneath --> set reference velocity (video until 48:56 minutes)
+
+bool too_close = false;         // variable if target object gets too close (30 m)
+
+// find ref_v to use --> no car ahead: ref_vel; or car_velocity --> look for relevant vehicles in my lane
+for (int i = 0; i < sensor_fusion.size(); i++) {
+  // sensor_fusion:
+  // 0: car id  
+  // 1: position in x
+  // 2: position in y
+  // 3: relative velocity in x-dir
+  // 4: relative velocity in y-dir
+  // 5: car's s-position (longitudinal)
+  // 6: car's d-position (lateral)
+  float d = sensor_fusion[i][6];        
+
+  // if car is in my lane (lane width = 4 m
+  if (d < (2 + 4 * lane + 2) && d >(2 + 4 * lane - 2)) {
+        double vx = sensor_fusion[i][3];
+        double vy = sensor_fusion[i][4];
+        double check_speed = sqrt(vx * vx + vy * vy);
+        double check_car_s = sensor_fusion[i][5];
+
+        check_car_s += (double)prev_size * 0.02 * check_speed;    // if using previous points can project s value out
+
+        // check s values greater than mine and s gap lower than 30 m
+        if ((check_car_s > car_s) && (check_car_s - car_s) < 30) {                                                
+            //ref_vel = 29.5;       // only sets speed stupidly to 29.5 mph, if object ahead is detected
+            too_close = true;                 
+
+            // if an object is detected and we are on one of the right lanes, go to lane 0
+            // lane change is done in 30 m (seen in waypoints)
+            if (lane > 0)
+            {
+                lane = 0;
+            }
+        }                    
+  }
+}
+
+// if too close to object ahead, slow down; if far enough away, speed up
+double max_vel = 49.5;
+if (too_close) {          // if a car is ahead, decelerate
+  ref_vel -= .224;        // 0.224 mph = 0.01 m/s
+}
+else if (ref_vel < max_vel) {
+  ref_vel += .224;        // if no car is ahead, accelerate
+}
+```
 Example List
 * Part 1
   * Subpart 1a
