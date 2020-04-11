@@ -1,6 +1,8 @@
 # CarND-Path-Planning
 Path-Planning part of Nanodegree "Self-driving car engineer"
 
+![](DoubleLaneChange.gif)
+
 ## Getting Started
 For getting in touch with term3-simulator I implemented a constant velocity of 0,5 m / 20 ms = 25 m/s: 
 ```c++
@@ -117,7 +119,8 @@ else if (ref_vel < max_vel) {
 ## Changing Lanes
 For a more in-depth look at the developed algorithm for changing lanes, following state chart was created. 
 
-![StateMachine](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "State Machine for Changing Lanes")
+![StateMachine](StateMachine.JPG)
+
 ### Lane Free Detection
 For detecting if a target lane is free, following code is executed
 ```c++
@@ -181,6 +184,16 @@ In order to reach the given velocity, the spline points are splitted up in a way
 ## Potentials of the current implementations
 The suggested implementation works very well as can be seen in following pictures: 
 
+![](PathPlanning_20_Miles.JPG)
+
+![](PathPlanning_v2_20_Miles.JPG)
+
+![](LaneChange.gif)
+
+![](DoubleLaneChange.gif)
+
 But it has some potentials: 
 * Instead of setting the minimum distance for lane-free-detection to certain, relative velocity depending distances, the actual time to collision could be considered and be a basis for a better distance calculation with some security offset.
-* Other cars lateral movement could be considered, such that their lane changes are considered during decision step. In my current implementation, a lane change of another car after an ego lane change could result in a crash, since after a lane change the target distnce to the object is lowered for comfort reasons. (compare video double_lanechange_and_collision.mp4)
+* Other cars lateral movement could be considered, such that their lane changes are considered during decision step. In my current implementation, a lane change of another car after an ego lane change could result in a crash, since after a lane change the target distnce to the object is lowered for comfort reasons.
+
+![](Collision.gif)
