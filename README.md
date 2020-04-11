@@ -184,9 +184,9 @@ In order to reach the given velocity, the spline points are splitted up in a way
 ## Potentials of the current implementations
 The suggested implementation works very well as can be seen in following pictures: 
 
-![](PathPlanning_20_Miles.JPG)
+![](PathPlanning_20_miles.JPG)
 
-![](PathPlanning_v2_20_Miles.JPG)
+![](PathPlanning_v2_20_miles.JPG)
 
 ![](LaneChange.gif)
 
