@@ -196,4 +196,4 @@ But it has some potentials:
 * Instead of setting the minimum distance for lane-free-detection to certain, relative velocity depending distances, the actual time to collision could be considered and be a basis for a better distance calculation with some security offset.
 * Other cars lateral movement could be considered, such that their lane changes are considered during decision step. In my current implementation, a lane change of another car after an ego lane change could result in a crash, since after a lane change the target distnce to the object is lowered for comfort reasons.
 
-![](Collision.gif)
+![](Collision_TargetLaneChange.gif)
