@@ -113,6 +113,36 @@ else if (ref_vel < max_vel) {
   ref_vel += .224;        // if no car is ahead, accelerate
 }
 ```
+
+## Changing Lanes
+For a more in-depth look at the developed algorithm for changing lanes, following state chart was created. 
+![StateMachine](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "State Machine for Changing Lanes")
+### Lane Free Detection
+For detecting if a target lane is free, following code is executed
+```c++
+// check if left lane is free              
+if (lane > 0) {                                                         // ego car is not yet on the very left lane
+    if ((car_lane * 4 - 4 < d) && (d < car_lane * 4)) {                 // another car is in left lane
+        if (((abs(s - (car_s - 2)) < 8) && ((speed - car_speed) < 2))   // and in relevant safety distance +/- 10 m at low v_rel or +/- 20 m at higher v_rel
+      || ((abs(s - (car_s - 2)) < 15) && ((speed - car_speed) < 4))     
+      || ((abs(s - (car_s - 2)) < 25) && ((speed - car_speed) >= 4)))   // took s - (car_s - 2) since car coordinate system is in front of vehicle --> shift to center
+      {
+          left_free = false;                                            // left lane is not possible            
+          if (debug)
+              std::cout << "car on left too close" << std::endl;
+      }
+
+      if ((s - car_s < max_det_dist) && (s > car_s) && (s - car_s < s_left)) {   // check if car is in front of ego and the one on the left lane which is next to us
+          v_left = speed;                                      // store speed
+          s_left = s - car_s;
+          if(debug)
+            std::cout << "car left detected with " << v_left << " in " << s_left << " m." << std::endl;
+      }
+  }
+}
+```
+
+
 Example List
 * Part 1
   * Subpart 1a
