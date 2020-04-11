@@ -116,6 +116,7 @@ else if (ref_vel < max_vel) {
 
 ## Changing Lanes
 For a more in-depth look at the developed algorithm for changing lanes, following state chart was created. 
+
 ![StateMachine](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "State Machine for Changing Lanes")
 ### Lane Free Detection
 For detecting if a target lane is free, following code is executed
@@ -140,8 +141,46 @@ if (lane > 0) {                                                         // ego c
       }
   }
 }
-```
 
+// check if very left lane is free (in case of lane ahead and lane left is occupied, but very left lane is free
+if (lane > 1) {
+  if ((car_lane * 4 - 8 < d) && (d < car_lane * 4 - 4)) {                           // another car is in very left lane
+      if ((s - car_s < max_det_dist) && (s > car_s) && (s - car_s < s_veryLeft)) {  // check if car is in front of ego and the one on the left lane which is next to us
+          v_veryLeft = speed;
+          s_veryLeft = s - car_s;
+      }
+  }
+}
+```
+There are three different minimum distances of the cars on the target lanes which are allowed for a lane change, depending on the relative velocity to our ego car. Furthermore, the coordinate system has its origin in the front of the ego car, s.t. for balancing the distance to the car's center, 2 m are subtracted from `car_s`.
+
+### Choosing Target Lane
+The target lane should allow the fastest way of traveling. Therefore following policy is introduced:
+```c++
+if ((change_lane) && (timer == 0)) {
+    // taken out: (v_left >= v_right + 0.5) --> right lane better, if velocity is higher. But initialized to 100 if empty; 
+    if (((lane > 0) && (v_left > v_ahead + 0.5) && ((v_left > v_right + 0.5) || (v_left == v_init))   // normal case for changing only one lane
+      || (lane == 2) && (v_veryLeft > v_ahead + 0.5) && (v_veryLeft > v_left + 0.5))
+      && (left_free)) {
+            lane--;       // change to left
+            timer = 200;  // timer set to 100 --> avoid new lane change for 200 cycles * 20 ms = 4.000 ms
+            smin_change_lane = 15;                // during lane change it is possible to driver closer to target object until timer counted down
+            if(debug)
+                std::cout << "Change to left lane " << lane << std::endl;
+    } 
+```
+As shown in the code snippet, not only the lane next to us is considered, but the very left lane as well. By comparing the velocities of the cars on each lane, the fastest lane will be chosen. This helps the system to change from the very right to the very left lane, even if the lane in the middle is not faster than our own on the right.
+A timer is startet when the actual lane change is executed (```lane--```). This timer prevents the car to change lanes too fast after another. 
+
+### Calculating the spline
+The calculation of the spline is based on the ```integer lanes``` variable with possible values between 0 (very left lane) and 2 (very right lane). 
+
+## Potentials of the current implementations
+The suggested implementation works very well as can be seen in following pictures: 
+
+But it has some potentials: 
+* Instead of setting the minimum distance for lane-free-detection to certain, relative velocity depending distances, the actual time to collision could be considered and be a basis for a better distance calculation with some security offset.
+* Other cars lateral movement could be considered, such that their lane changes are considered during decision step. In my current implementation, a lane change of another car after an ego lane change could result in a crash, since after a lane change the target distnce to the object is lowered for comfort reasons. (compare video double_lanechange_and_collision.mp4)
 
 Example List
 * Part 1
