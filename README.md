@@ -173,7 +173,10 @@ As shown in the code snippet, not only the lane next to us is considered, but th
 A timer is startet when the actual lane change is executed (```lane--```). This timer prevents the car to change lanes too fast after another. 
 
 ### Calculating the spline
-The calculation of the spline is based on the ```integer lanes``` variable with possible values between 0 (very left lane) and 2 (very right lane). 
+The calculation of the spline is based on the ```integer lanes``` variable with possible values between 0 (very left lane) and 2 (very right lane). For calculating the spline, the suggested library from Tino Kluge is used. First, a vector with current car's position is created, as well as the last knwon position from the previous frame. Then in Frenet-coorindates, the target location of the car at the next waypoints are calculated (```car_s + 30 / 60 / 90``` and (```car_d = 2 + 4 * lane```). Then the car's reference angle is shifted to 0°. 
+The spline is then created from the vector. 
+In order to reach the given velocity, the spline points are splitted up in a way, that the target_y-value is changed depending on the target_distance. 
+(i used the method shown in the FAQ-video section.)
 
 ## Potentials of the current implementations
 The suggested implementation works very well as can be seen in following pictures: 
@@ -181,41 +184,3 @@ The suggested implementation works very well as can be seen in following picture
 But it has some potentials: 
 * Instead of setting the minimum distance for lane-free-detection to certain, relative velocity depending distances, the actual time to collision could be considered and be a basis for a better distance calculation with some security offset.
 * Other cars lateral movement could be considered, such that their lane changes are considered during decision step. In my current implementation, a lane change of another car after an ego lane change could result in a crash, since after a lane change the target distnce to the object is lowered for comfort reasons. (compare video double_lanechange_and_collision.mp4)
-
-Example List
-* Part 1
-  * Subpart 1a
-  * Subpart 1b
-* Part 2
-* Part 3
-  * Subpart 3a
-  * Subpart 3b
-
-*italic*
-**bold**
-_**bold and italic**_
-
-Inline Code `code example`
-
-Code Cells
-```python
-# function to find highes value in array
-def max_val(array):
-  max_val = array[0]
-  max_id = 0
-  for i in range(len(array)): 
-    if array[i] > max_val: 
-      max_val = array[i]
-      max_id = i
-```
-
-Task List
-- [X] Get familiar with markdown
-- [ ] Write code
-- [ ] Write markdown
-
-Table
-Description | Header | Date
-------------|--------|------
-Hello World | First Program | 29.03.2020
-Snipper | Snipping Tool | 19.03.2020
