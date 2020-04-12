@@ -5,6 +5,9 @@ Path-Planning part of Nanodegree "Self-driving car engineer"
 
 ## Executing this code
 This code was developed in a Windows Environment with Visual Studio 2019. Please add ```Eigen-3.3```-library to the src-folder. I did not upload the whole library, since there were too many files. 
+Changelog: 
+* added this documentation about Eigen-3.3
+* changed path-variable ```string map_file_ = "../../../data/highway_map.csv";``` (running in my Windows-environment) into ```string map_file_ = "../data/highway_map.csv";```, since reviewer was not able to load map data.
 
 ## Getting Started
 For getting in touch with term3-simulator I implemented a constant velocity of 0,5 m / 20 ms = 25 m/s: 
