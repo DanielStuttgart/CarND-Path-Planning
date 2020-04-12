@@ -4,7 +4,7 @@ Path-Planning part of Nanodegree "Self-driving car engineer"
 ![](DoubleLaneChange.gif)
 
 ## Executing this code
-This code was developed in a Windows Environment with Visual Studio 2019. Please add ```Eigen-3.3```-library to the src-folder. 
+This code was developed in a Windows Environment with Visual Studio 2019. Please add ```Eigen-3.3```-library to the src-folder. I did not upload the whole library, since there were too many files. 
 
 ## Getting Started
 For getting in touch with term3-simulator I implemented a constant velocity of 0,5 m / 20 ms = 25 m/s: 
