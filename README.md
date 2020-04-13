@@ -9,7 +9,7 @@ Changelog:
 * added this documentation about Eigen-3.3
 * changed path-variable ```string map_file_ = "../../../data/highway_map.csv";``` (running in my Windows-environment) into ```string map_file_ = "../data/highway_map.csv";```, since reviewer was not able to load map data
 * added various subfunctions in order to avoid leaving the lane (please look in section below for further details)
-* issue with boundary-detection from Udacity Term 3 Simulator, Windows (please look in section below for further detals and video)
+* issue with boundary-detection from Udacity Term 3 Simulator, Windows (please look in section below for further details and video)
 * chose higher distance after cut-in (old: 15 m -> new: 20 m)
 
 ## Getting Started
