@@ -7,7 +7,7 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "helpers.h"
 #include "json.hpp"
-#include "spline.h"
+//#include "spline.h"
 
 // for convenience
 using nlohmann::json;
@@ -24,6 +24,12 @@ int main() {
   vector<double> map_waypoints_dx;
   vector<double> map_waypoints_dy;
 
+  // added splines for better interpolation
+  tk::spline spline_x;
+  tk::spline spline_y;
+  tk::spline spline_dx;
+  tk::spline spline_dy;
+
   // Waypoint map to read from
   string map_file_ = "../data/highway_map.csv";
   //string map_file_ = "../../../data/highway_map.csv";
@@ -33,6 +39,7 @@ int main() {
   std::ifstream in_map_(map_file_.c_str(), std::ifstream::in);
 
   string line;
+  double MAX_S;
   while (getline(in_map_, line)) {
     std::istringstream iss(line);
     double x;
@@ -43,6 +50,7 @@ int main() {
     iss >> x;
     iss >> y;
     iss >> s;
+    MAX_S = s;
     iss >> d_x;
     iss >> d_y;
     map_waypoints_x.push_back(x);
@@ -56,7 +64,60 @@ int main() {
       std::cout << "Length of Map: " << map_waypoints_s.size() << " --> Exit now" << std::endl;
       return -1;
   }
+
+  bool use_waypoints_spline = true;
+
+  // known issue: sometimes at very right lane the warning "out of lanes" is raised, even when all four wheels are within the lane. Others also reported this issue:
+  // https://github.com/raskolnikov-reborn
+  if (use_waypoints_spline) {
+      // for spline approximation on last segemt, warp around
+      // and add first points again
+      map_waypoints_x.push_back(map_waypoints_x[0]);
+      map_waypoints_y.push_back(map_waypoints_y[0]);
+      map_waypoints_dx.push_back(map_waypoints_dx[0]);
+      map_waypoints_dy.push_back(map_waypoints_dy[0]);
+      map_waypoints_s.push_back(MAX_S + (map_waypoints_s[1] - map_waypoints_s[0]));
+  }
   
+  // initialize waypoint-splines (idea from https://github.com/PhilippeW83440 and udacity-forums)
+  spline_x.set_points(map_waypoints_s, map_waypoints_x);
+  spline_y.set_points(map_waypoints_s, map_waypoints_y);
+  spline_dx.set_points(map_waypoints_s, map_waypoints_dx);
+  spline_dy.set_points(map_waypoints_s, map_waypoints_dy);
+
+  if (use_waypoints_spline) {
+      // since last added point was only for creating smoother spline, remove to avoid duplicats
+      map_waypoints_x.pop_back();
+      map_waypoints_y.pop_back();
+      map_waypoints_dx.pop_back();
+      map_waypoints_dy.pop_back();
+      map_waypoints_s.pop_back();
+    }
+
+  // create better weypoints by using splines
+  vector<double> new_map_waypoints_x;
+  vector<double> new_map_waypoints_y;
+  vector<double> new_map_waypoints_dx;
+  vector<double> new_map_waypoints_dy;
+  for (double s = 0; s <= floor(MAX_S); s++) {
+      double x = spline_x(s);
+      double y = spline_y(s);
+      double dx = spline_dx(s);
+      double dy = spline_dy(s);
+
+      new_map_waypoints_x.push_back(x);
+      new_map_waypoints_y.push_back(y);
+      new_map_waypoints_dx.push_back(dx);
+      new_map_waypoints_dy.push_back(dy);
+  }
+
+  if (use_waypoints_spline) {
+      map_waypoints_x = new_map_waypoints_x;
+      map_waypoints_y = new_map_waypoints_y;
+      map_waypoints_dx = new_map_waypoints_dx;
+      map_waypoints_dy = new_map_waypoints_dy;
+  }
+
   // start in lane 1 (Lanes: || 0 | 1 | 2 ||
   int lane = 1;     // add used variables as well in h.onMessage
 
@@ -64,7 +125,7 @@ int main() {
   double ref_vel = 0;           // start at 0.0, speed up is done with .224 beneath
 
   h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,
-               &map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel]
+               &map_waypoints_dx,&map_waypoints_dy, &lane, &ref_vel, &spline_x, &spline_y, &spline_dx, &spline_dy]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                uWS::OpCode opCode) {
     // static variable for timings
@@ -202,6 +263,10 @@ int main() {
                     }                    
               }
 
+              // above code checks, if target lane is free. Beneath added code for checking our actual lane we are in
+              if ((d < (4 * car_lane + 4) && d >(4 * car_lane)) && ((s > car_s) && (s - car_s) < smin_change_lane))
+                  too_close = true;
+
               // check if left lane is free              
               if (lane > 0) {                                                   // ego car is not yet on the very left lane
                   if ((car_lane * 4 - 4 < d) && (d < car_lane * 4)) {           // another car is in left lane
@@ -292,7 +357,7 @@ int main() {
                   && (left_free)) {
                   lane--;       // change to left
                   timer = 200;  // timer set to 100 --> avoid new lane change for 200 cycles * 20 ms = 4.000 ms
-                  smin_change_lane = 15;                // during lane change it is possible to driver closer to target object until timer counted down
+                  smin_change_lane = 20;                // during lane change it is possible to driver closer to target object until timer counted down
                   if(debug)
                     std::cout << "Change to left lane " << lane << std::endl;
               }  
@@ -301,11 +366,15 @@ int main() {
                   && (right_free)) {
                   lane++;
                   timer = 200;  // timer set to 200 --> avoid new lane change for 200 cycles * 20 ms = 4.000 ms
-                  smin_change_lane = 15;                // during lane change it is possible to driver closer to target object until timer counted down
+                  smin_change_lane = 20;                // during lane change it is possible to driver closer to target object until timer counted down
                   if (debug)
                       std::cout << "Change to right lane " << lane << std::endl;
               }
-          }          
+          }   
+
+          // check lane for boundaries --> debug
+          if ((car_d < 0) || (car_d > 12))
+              std::cout << "HELP;" << std::endl;
 
           // working with splines: create a list of widely spaced x,y-coordinates, evenly spaced at 30m 
           // later we will interpolate these waypoints with a psline and fill it in with more points that control jerk
@@ -350,17 +419,41 @@ int main() {
           }
 
           // in Frenet add evenly 30 m spaced points ahead of starting reference
-          vector<double> next_wp0 = getXY(car_s + 30, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y); 
-          vector<double> next_wp1 = getXY(car_s + 60, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-          vector<double> next_wp2 = getXY(car_s + 90, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-
+          vector<double> next_wp0;
+          vector<double> next_wp1;
+          vector<double> next_wp2;
+          vector<double> next_wp3;
+          double new_d = 2 + 4 * lane; 
+          // check boundaries: if vehicle is on very left or very right lane, then add some safety distance
+          if (lane == 0)
+              new_d += 0.25; 
+          if (lane == 2)
+              new_d -= 0.25;
+          bool getXY_spline = true;
+          if (getXY_spline == false) {
+              next_wp0 = getXY(car_s + 30, new_d, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+              next_wp1 = getXY(car_s + 60, new_d, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+              next_wp2 = getXY(car_s + 90, new_d, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+          }
+          else {
+              next_wp0 = getXYspline(car_s + 30, new_d, map_waypoints_s, map_waypoints_x, map_waypoints_y, spline_x, spline_y, spline_dx, spline_dy);
+              next_wp1 = getXYspline(car_s + 60, new_d, map_waypoints_s, map_waypoints_x, map_waypoints_y, spline_x, spline_y, spline_dx, spline_dy);
+              next_wp2 = getXYspline(car_s + 90, new_d, map_waypoints_s, map_waypoints_x, map_waypoints_y, spline_x, spline_y, spline_dx, spline_dy);
+              next_wp3 = getXYspline(car_s + 120, new_d, map_waypoints_s, map_waypoints_x, map_waypoints_y, spline_x, spline_y, spline_dx, spline_dy);
+          }
+          
           pts_x.push_back(next_wp0[0]);
           pts_x.push_back(next_wp1[0]);
-          pts_x.push_back(next_wp2[0]);
+          pts_x.push_back(next_wp2[0]);          
           
           pts_y.push_back(next_wp0[1]);
           pts_y.push_back(next_wp1[1]);
           pts_y.push_back(next_wp2[1]);
+
+          if (getXY_spline) {
+              pts_x.push_back(next_wp3[0]);
+              pts_y.push_back(next_wp3[1]);
+          }
 
           for (int i = 0; i < pts_x.size(); i++) {
               // shift car reference angle to 0 degrees --> last point of previous path == point of car == [0,0] --> set reference to be [0,0]

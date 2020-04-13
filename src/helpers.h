@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+// added tk
+#include "spline.h"
+
 // for convenience
 using std::string;
 using std::vector;
@@ -152,6 +155,18 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s,
   double y = seg_y + d*sin(perp_heading);
 
   return {x,y};
+}
+
+// added spline-versions for more accuracy; based on ideas of https://github.com/PhilippeW83440/CarND-Path-Planning-Project/
+vector<double> getXYspline(double s, double d, const vector<double>& maps_s,
+    const vector<double>& maps_x, const vector<double>& maps_y,
+    tk::spline &spline_x, tk::spline &spline_y, 
+    tk::spline& spline_dx, tk::spline& spline_dy) {
+    //s = fmod(s, S_MAX);             
+    double x = spline_x(s) + d * spline_dx(s);
+    double y = spline_y(s) + d * spline_dy(s);
+
+    return { x,y };
 }
 
 #endif  // HELPERS_H
