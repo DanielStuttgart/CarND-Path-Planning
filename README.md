@@ -7,8 +7,10 @@ Path-Planning part of Nanodegree "Self-driving car engineer"
 This code was developed in a Windows Environment with Visual Studio 2019. Please add ```Eigen-3.3```-library to the src-folder. I did not upload the whole library, since there were too many files. 
 Changelog: 
 * added this documentation about Eigen-3.3
-* changed path-variable ```string map_file_ = "../../../data/highway_map.csv";``` (running in my Windows-environment) into ```string map_file_ = "../data/highway_map.csv";```, since reviewer was not able to load map data.
-* added various subfunctions in order to avoid leaving the lane (please look below for further details).
+* changed path-variable ```string map_file_ = "../../../data/highway_map.csv";``` (running in my Windows-environment) into ```string map_file_ = "../data/highway_map.csv";```, since reviewer was not able to load map data
+* added various subfunctions in order to avoid leaving the lane (please look in section below for further details)
+* issue with boundary-detection from Udacity Term 3 Simulator, Windows (please look in section below for further detals and video)
+* chose higher distance after cut-in (old: 15 m -> new: 20 m)
 
 ## Getting Started
 For getting in touch with term3-simulator I implemented a constant velocity of 0,5 m / 20 ms = 25 m/s: 
@@ -240,6 +242,13 @@ vector<double> getXYspline(double s, double d, const vector<double>& maps_s,
 }
 ```
 In order to get a higher prediction horizon, I introduced a fourth waypoint.
+
+## Issue with boundary-detection from Udacity Term 3 Simulator
+In following video Udacity Term 3 Simulator detects the car to be out of the right-most lane. From my perspective of view the car did not leave the right part of the lane, but the simulator blamed it to be. 
+
+![](OutsideLane.gif)
+
+I changed the perspective in order to have a closer look to the position within the lane, but it was after the outside-lane-detection occured.
 
 ## Potentials of the current implementations
 The suggested implementation works very well as can be seen in following pictures: 
