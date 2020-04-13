@@ -245,9 +245,10 @@ vector<double> getXYspline(double s, double d, const vector<double>& maps_s,
 In order to get a higher prediction horizon, I introduced a fourth waypoint. Additionally, I introduced a puffer-zone of 25 cm when the car drives on the very left or very right lane, s.t. lanes should not be left anymore.
 
 ## Issue with boundary-detection from Udacity Term 3 Simulator
-In following video Udacity Term 3 Simulator detects the car to be out of the right-most lane. From my perspective of view the car did not leave the right part of the lane, but the simulator blamed it to be. 
+In following videos Udacity Term 3 Simulator detects the car to be out of the right-most lane. From my perspective of view the car did not leave the right part of the lane, but the simulator blamed it to be. 
 
 ![](OutsideLane.gif)
+![](OutsideLane2.gif)
 
 I changed the perspective in order to have a closer look to the position within the lane, but it was after the outside-lane-detection occured. This issue was mentioned earlier in following github repo: 
 https://github.com/raskolnikov-reborn
