@@ -248,7 +248,8 @@ In following video Udacity Term 3 Simulator detects the car to be out of the rig
 
 ![](OutsideLane.gif)
 
-I changed the perspective in order to have a closer look to the position within the lane, but it was after the outside-lane-detection occured.
+I changed the perspective in order to have a closer look to the position within the lane, but it was after the outside-lane-detection occured. This issue was mentioned earlier in following github repo: 
+https://github.com/raskolnikov-reborn
 
 ## Potentials of the current implementations
 The suggested implementation works very well as can be seen in following pictures: 
