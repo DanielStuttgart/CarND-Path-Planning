@@ -8,6 +8,7 @@ This code was developed in a Windows Environment with Visual Studio 2019. Please
 Changelog: 
 * added this documentation about Eigen-3.3
 * changed path-variable ```string map_file_ = "../../../data/highway_map.csv";``` (running in my Windows-environment) into ```string map_file_ = "../data/highway_map.csv";```, since reviewer was not able to load map data.
+* added various subfunctions in order to avoid leaving the lane (please look below for further details).
 
 ## Getting Started
 For getting in touch with term3-simulator I implemented a constant velocity of 0,5 m / 20 ms = 25 m/s: 
@@ -178,6 +179,7 @@ if ((change_lane) && (timer == 0)) {
                 std::cout << "Change to left lane " << lane << std::endl;
     } 
 ```
+
 As shown in the code snippet, not only the lane next to us is considered, but the very left lane as well. By comparing the velocities of the cars on each lane, the fastest lane will be chosen. This helps the system to change from the very right to the very left lane, even if the lane in the middle is not faster than our own on the right.
 A timer is startet when the actual lane change is executed (```lane--```). This timer prevents the car to change lanes too fast after another. 
 
@@ -186,6 +188,58 @@ The calculation of the spline is based on the ```integer lanes``` variable with 
 The spline is then created from the vector. 
 In order to reach the given velocity, the spline points are splitted up in a way, that the target_y-value is changed depending on the target_distance. 
 (i used the method shown in the FAQ-video section.)
+
+### Avoiding leaving the lane
+In some cases in the previous version it was possible for the car to leave its target lane (most often when it was traveling in the very right lane). One of the reasons could be, that a waypoint of the map was geven only every 38 m. The map with waypoints is depicted in the picture below.
+
+![](waypoints.JPG)
+
+In order to avoid inaccuracies due to this, I create a spline with the existing waypoints (idea taken from StudentHub and https://github.com/PhilippeW83440). The problem with fitting a spline is, that it creates a path from the first to the last waypoint. Between the last and the first waypoint, it is not able to interpolate. To cope with this, the first point is pushed back to the end of the waypoints before creating the spline: 
+```c++
+if (use_waypoints_spline) {
+    // for spline approximation on last segemt, warp around
+    // and add first points again
+    map_waypoints_x.push_back(map_waypoints_x[0]);
+    map_waypoints_y.push_back(map_waypoints_y[0]);
+    map_waypoints_dx.push_back(map_waypoints_dx[0]);
+    map_waypoints_dy.push_back(map_waypoints_dy[0]);
+    map_waypoints_s.push_back(MAX_S + (map_waypoints_s[1] - map_waypoints_s[0]));
+    
+    // initialize waypoint-splines 
+    spline_x.set_points(map_waypoints_s, map_waypoints_x);
+    spline_y.set_points(map_waypoints_s, map_waypoints_y);
+    spline_dx.set_points(map_waypoints_s, map_waypoints_dx);
+    spline_dy.set_points(map_waypoints_s, map_waypoints_dy);
+}
+```
+Afterwards, I create some new waypoints every 1 m in s-dimension out of these new splines. 
+```c++
+for (double s = 0; s <= floor(MAX_S); s++) {
+    double x = spline_x(s);
+    double y = spline_y(s);
+    double dx = spline_dx(s);
+    double dy = spline_dy(s);
+
+    new_map_waypoints_x.push_back(x);
+    new_map_waypoints_y.push_back(y);
+    new_map_waypoints_dx.push_back(dx);
+    new_map_waypoints_dy.push_back(dy);
+}
+```
+During waypoint calculation, these splines are used in order to get a higher accuracy. For this, a new function getXYsplines is implemented to calculate the waypoints:
+```c++
+vector<double> getXYspline(double s, double d, const vector<double>& maps_s,
+    const vector<double>& maps_x, const vector<double>& maps_y,
+    tk::spline &spline_x, tk::spline &spline_y, 
+    tk::spline& spline_dx, tk::spline& spline_dy) {
+    //s = fmod(s, S_MAX);             
+    double x = spline_x(s) + d * spline_dx(s);
+    double y = spline_y(s) + d * spline_dy(s);
+
+    return { x,y };
+}
+```
+In order to get a higher prediction horizon, I introduced a fourth waypoint.
 
 ## Potentials of the current implementations
 The suggested implementation works very well as can be seen in following pictures: 
