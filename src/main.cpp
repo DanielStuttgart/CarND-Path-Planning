@@ -164,6 +164,9 @@ int main() {
           double car_yaw = j[1]["yaw"];
           double car_speed = j[1]["speed"];
 
+          // car_speed is in mph, need to convert to m/s
+          car_speed *= 0.447;
+
           // calculate car's lane for predicting collisions (if using lane-variable, target lane is used --> inaccurate)
           int car_lane = (int)(car_d / 4);
           std::cout << car_lane << std::endl;
@@ -305,9 +308,10 @@ int main() {
                           || ((abs(s - (car_s - 2)) < 15) && ((speed - car_speed) < 4))
                           || ((abs(s - (car_s - 2)) < 25) && ((speed - car_speed) >= 4))) // took s - car_s - 2 since car coordinate system is in front of vehicle --> shift to center
                       {
-                          right_free = false;                                    // right lane is not possible                          
-                          if (debug)
-                              std::cout << "car on right too close" << std::endl;
+                          right_free = false;    
+                                // right lane is not possible                          
+                          if (debug) 
+                              std::cout << "car on right too close" << std::endl;                              
                       }
 
                       if ((s - car_s < max_det_dist) && (s > car_s) && (s - car_s < s_right)) {   // check if car is in front of ego and the one on the left lane which is next to us
