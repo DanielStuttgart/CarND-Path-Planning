@@ -4,9 +4,10 @@ Path-Planning part of Nanodegree "Self-driving car engineer"
 ![](DoubleLaneChange.gif)
 
 ## Executing this code
-This code was developed in a Windows Environment with Visual Studio 2019. Please add ```Eigen-3.3```-library to the src-folder. I did not upload the whole library, since there were too many files. 
-Changelog: 
-* added this documentation about Eigen-3.3
+This code was developed in a Windows Environment with Visual Studio 2019.  
+
+**Changelog:**
+* added Eigen-3.3 library. If any errors occur, please add ```Eigen-3.3```-library to the src-folder manually.
 * changed path-variable ```string map_file_ = "../../../data/highway_map.csv";``` (running in my Windows-environment) into ```string map_file_ = "../data/highway_map.csv";```, since reviewer was not able to load map data
 * added various subfunctions in order to avoid leaving the lane (please look in section below for further details)
 * issue with boundary-detection from Udacity Term 3 Simulator, Windows (please look in section below for further details and video)
