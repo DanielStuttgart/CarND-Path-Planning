@@ -241,7 +241,7 @@ vector<double> getXYspline(double s, double d, const vector<double>& maps_s,
     return { x,y };
 }
 ```
-In order to get a higher prediction horizon, I introduced a fourth waypoint.
+In order to get a higher prediction horizon, I introduced a fourth waypoint. Additionally, I introduced a puffer-zone of 25 cm when the car drives on the very left or very right lane, s.t. lanes should not be left anymore.
 
 ## Issue with boundary-detection from Udacity Term 3 Simulator
 In following video Udacity Term 3 Simulator detects the car to be out of the right-most lane. From my perspective of view the car did not leave the right part of the lane, but the simulator blamed it to be. 
